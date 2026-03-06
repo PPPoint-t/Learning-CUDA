@@ -1,43 +1,94 @@
 # Learning-CUDA
 
-本项目为 2025 年夏季 InfiniTensor 大模型与人工智能系统训练营 CUDA 方向专业阶段的作业系统。
+本项目为 2025 年冬季 InfiniTensor 大模型与人工智能系统训练营 CUDA 方向专业阶段的作业与项目系统。
 
 ## 📁 项目结构
 
 ```text
 learning-CUDA/
 ├── Makefile
+├── LICENSE
 ├── README
 ├── src
-│   └── kernels.cu
+│   ├── kernels.cu
+│   ├── kernels.maca
+|   └── kernels.mu
 └── tester
-    ├── tester.o
+    ├── tester_iluvatar.o
+    ├── tester_metax.o
+    ├── tester_moore.o
+    ├── tester_nv.o
     └── utils.h
 ```  
 
-## 环境配置
+## 🌳 环境配置
 
-如果你使用的是训练营提供的服务器，则该步骤可直接跳过。
+### > 英伟达（NVIDIA）
 
-请确保系统已安装以下工具：
+- 如果你使用的是训练营所提供的服务器，遵照英伟达算力文档中的步骤配置好环境即可。
 
-1. **CUDA Toolkit**（版本11.0及以上）：
-    - 验证安装：运行`nvcc --version`。
-    - 安装：从[NVIDIA CUDA Toolkit下载页](https://developer.nvidia.com/cuda-downloads)获取。
-2. **GNU Make**：
-    - 验证安装：运行`make --version`（大多数Linux/macOS已预装）。
+- 如果为本地或其他环境，请确保系统已安装以下工具：
+
+  1. **CUDA Toolkit**（版本11.0及以上）：
+      - 验证安装：运行`nvcc --version`。
+      - 安装：从[NVIDIA CUDA Toolkit下载页](https://developer.nvidia.com/cuda-downloads)获取。
+  2. **GNU Make**：
+      - 验证安装：运行`make --version`（大多数Linux/macOS已预装）。
+  3. **C++ 版本**：
+      - 本次作业在英伟达上默认需支持 C++17
+
+### > 天数智芯（Iluvatar CoreX）
+
+- 如果你使用的是训练营所提供的服务器，遵照天数 BI-100 算力文档中的步骤配置好环境即可。
+
+- 对于非训练营所提供的天数算力，请配置标准的天数 GPU 开放环境。本次作业在天数上默认需支持 C++17，且**本次作业的配置不保证能在所有其他天数环境上无修改直接运行**。
+
+### > 沐曦集成电路（MetaX）
+
+- 如果你使用的是训练营所提供的服务器，遵照沐曦 (C500) 算力文档中的步骤配置好环境即可。
+  - 镜像可以选择 PyTorch 的最新镜像，即 PyTorch 2.8.0， Python 3.1.2，maca 3.3.0.4
+
+- 对于非训练营所提供的沐曦算力，请配置标准的沐曦 GPU 开放环境。本次作业在沐曦上默认需支持 C++17，且**本次作业的配置不保证能在所有其他沐曦环境上无修改直接运行**。
+
+### > 摩尔线程（Moore Threads）
+
+- 如果你使用的是训练营所提供的服务器，请先遵照摩尔 (S5000) 算力文档中的步骤配置环境。
+
+    在此基础上，请确保在 `.bashrc` 中添加了以下环境变量：
+
+    ```bash
+    export MUSA_ROOT=/usr/local/musa
+    export PATH="$MUSA_ROOT/bin:$PATH"
+    export LD_LIBRARY_PATH="$MUSA_ROOT/lib:$LD_LIBRARY_PATH"
+    export CPLUS_INCLUDE_PATH=/usr/include/c++/11:/usr/include/x86_64-linux-gnu/c++/11
+    ```
+
+- 对于非训练营所提供的摩尔算力，请配置标准的摩尔 GPU 开放环境。本次作业在摩尔上默认需支持 C++11，且**本次作业的配置不保证能在所有其他摩尔环境上无修改直接运行**。
+
 
 ## 🧠 作业
 
 作业一共有两题。需实现 `src/kernels.cu` 中给定的 **2 个 CUDA  函数** 。
 
-1. **kthLargest**
+1. **trace**
 
-实现 CUDA 的 kthLargest 函数。给定一个连续的输入数组和非负数 k，返回该数组中第 k 大的数。该函数需支持 int 和 float 两种类型的输入。具体边界处理和一些条件可见文件中的注释。
+实现 CUDA 的 trace 函数。给定一个逻辑上 2D 的输入矩阵，返回该矩阵的迹。该函数需支持 `int` 和 `float` 两种类型的输入。具体边界处理和一些条件可见文件中的注释。
   
 2. **flashAttention**
 
-实现 Flash Attention 算子。需支持 causal masking 和 GQA。具体行为与 [torch.nn.functional.scaled_dot_product_attention](https://docs.pytorch.org/docs/stable/generated/torch.nn.functional.scaled_dot_product_attention.html) 保持一致。接口未提供的参数所代表的功能无需支持和实现。具体参数要求请参考文件中的注释。该函数需支持 float。
+实现 Flash Attention 算子。需支持 causal masking 和 GQA。具体行为与 [torch.nn.functional.scaled_dot_product_attention](https://docs.pytorch.org/docs/stable/generated/torch.nn.functional.scaled_dot_product_attention.html) 保持一致。接口未提供的参数所代表的功能无需支持和实现。具体参数要求请参考文件中的注释。该函数需支持 `float` 和 `half` 两种类型。
+
+### 国产平台适配
+
+在完成英伟达的基础上，可以将实现适配至天数、沐曦和/或摩尔这三款 GPU 平台上。
+
+- 天数适配需同样在 `src/kernels.cu` 中进行；
+  
+- 沐曦适配需在 `src/kernels.maca` 中进行；
+
+- 摩尔适配需在 `src/kernels.mu` 中进行；
+
+具体编译和运行方式以及国产适配对评分的影响，分别可见下面的 **编译与运行** 与 **评分规则** 两部分。
 
 ### 注意事项
 
@@ -48,7 +99,7 @@ learning-CUDA/
 5. 需进行**适当**的代码注释解释重要部分；
 
 ### 提交方式
-在网站 [InfiniTensor 开源社区](https://beta.infinitensor.com/camp/summer2025) 上提交 GitHub 链接，以最新提交为准。
+在网站 [InfiniTensor 开源社区](https://www.infinitensor.com/camp/winter2025/homework) 上提交 GitHub 链接，无需提交 PR，无需重复提交，评分将以截止日期前的最新提交为准。详细提交方式可见作业提交页面。
 
 ## 🛠️ 编译与运行
 
@@ -56,15 +107,46 @@ learning-CUDA/
 
 ### 构建与运行指令
 
-使用`Makefile`简化构建流程，以下命令需在**项目根目录**（即 `Makefile` 所在的目录）执行：
+使用 `Makefile` 简化构建流程，以下命令需在**项目根目录**（即 `Makefile` 所在的目录）执行：
 
-#### 默认：构建并运行测试（非 verbose 模式）
+#### 1. 默认：构建并运行测试（非 verbose 模式）
 
-直接在命令行使用 `make` 指令编译代码并执行测试，输出简洁结果。
+- 直接在命令行使用 `make` 指令编译代码并执行测试，输出简洁结果。
 
-#### 构建并运行测试（verbose 模式）
+#### 2. 构建并运行测试（verbose 模式）
 
-直接在命令行使用 `make VERBOSE=true` 指令编译代码并执行测试，输出包括执行时间在内的结果。
+- 直接在命令行使用 `make VERBOSE=true` 指令编译代码并执行测试，输出包括执行时间等更多信息在内的结果。
+
+#### 3. 选择性测试算子
+
+如果只想调试/测试某个算子，可以通过设置环境变量的方式来实现。比如只想测试第一题的 trace，则可以：
+
+1. 如果只是临时跳过，可以直接在命令行使用 `SKIP_ATTENTION=1 make` 编译代码并**跳过第二题，只测试第一题**。
+   
+2. 如果较长时间都想跳过，可以一开始使用一次 `export SKIP_ATTENTION=1`, 随后在同一个命令行中照常使用 `make` 相关命令。如果想撤销，则可以使用 `export SKIP_ATTENTION=0` 或 `unset SKIP_ATTENTION`。
+
+
+#### 4. 选择编译平台
+
+可以通过在命令行使用 `make PLATFORM=<platform>` 指令来指定编译平台。**默认的编译平台为英伟达平台**，即如果不指定 `PLATFORM` 直接 `make`，则是编译英伟达平台。具体平台选项：
+
+1. 编译并在英伟达平台运行：`make` 或 `make PLATFORM=nvidia`；
+   
+2. 编译并在天数平台运行：`make PLATFORM=iluvatar`；
+   
+3. 编译并在沐曦平台运行：`make PLATFORM=metax`；
+
+4. 编译并在摩尔平台运行：`make PLATFORM=moore`；
+   
+
+**以上提及的编译选项与环境变量均可根据需求组合。例如：`SKIP_TRACE=1 make PLATFORM=nvidia VERBOSE=true`**
+   
+
+#### 环境变量：
+1. `SKIP_TRACE`: 跳过第一题的 trace 测试。
+   
+2. `SKIP_ATTENTION`: 跳过第二题的 Flash Attention 测试。
+
 
 ## 📊 评分规则
 
@@ -79,10 +161,21 @@ learning-CUDA/
 2. **性能加分**  
    - 在正确性的基础上，会对各实现的性能进行排名；
    - 性能越优，获得的额外分数越多；
-   - 性能评判将在提供的服务器上进行，因此请在服务器上进行性能评估。
+   - **性能评判将在提供的服务器上进行**，因此请在服务器上进行性能评估。
 
-3. **最终成绩**  
-   - 总体得分由「通过的测试用例数量」与「性能排名加分」共同决定。  
+3. **平台适配加分**  
+   - 每道题在英伟达上测例正确的基础上，每多适配一个国产平台可以获得固定得分乘算系数（20%）；
+   - 每个平台适配完成的标准为该题在该平台上可以通过全部测例。全部通过则获得该平台的 20% 加成，无法全部通过则无法获得加成（0%）；
+   - 题目分开计算，即只有在该平台上通过全部测例的题目可以获得该题目部分的乘算系数加成；
+   - 国产平台不进行性能测试，故不参与前面第二点的性能得分计算（与性能加分正交）。但对国产平台做了针对性优化并有较明显成效者，根据导师意见可以额外加分。
+  
+4. **综合评判**
+   - 在前三点的基础上，还有一个整体独立的评分乘区，乘算系数可正增长（`>1`），也可折损（`[0,1)`）；
+   - **正增长** 的主要获得方式为第三点提到的国产平台性能优化额外分（上限30%）
+   - **折损** 主要来源于较差的代码质量（代码是否有较好的整理和结构、是否有合适的注释、是否有统一的命名风格等）、编译与运行问题（比如缺少必要的头文件导致的无法直接运行等）以及未符合前面 **注意事项** 中提及的要求。
+
+5. **最终成绩**  
+   - 总体得分由「通过的测试用例数量」、「性能排名加分」、「平台适配加分」以及「综合评判」共同决定。  
    - 各测试用例的分数相加，形成最终成绩。  
 
 ## 📬 有疑问?
