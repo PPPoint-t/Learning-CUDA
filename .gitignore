@@ -1,0 +1,5 @@
+/build/
+/test_kernels
+/src/*.o
+*.tmp
+

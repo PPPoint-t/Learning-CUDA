@@ -1,68 +1,52 @@
-# *********************************************************************
-# Learning-CUDA Makefile
-# Targets:
-#   make               : Build + run tests (default, non-verbose)
-#   make build         : Only compile (no run)
-#   make run           : Run tests (after build, non-verbose)
-#   make run VERBOSE=true : Run tests with verbose output
-#   make clean         : Delete temporary files
-# *********************************************************************
+CUDA            := nvcc
+NVCCFLAGS       := -std=c++17 -O2 -I.
+BUILD_DIR       := build
+ARCHIVE_DIR     := archive/summer2025-assignment
+OPS             := vector_add reduction scan softmax topk gemm attention
 
-# -------------------------------
-# Configuration
-# -------------------------------
-CC              := nvcc                  # CUDA compiler
-CFLAGS          := -std=c++17 -O0        # Compile flags
-TARGET          := test_kernels     	 # Executable name
-STUDENT_SRC     := src/kernels.cu        # Kernel implementation 
-STUDENT_OBJ     := $(STUDENT_SRC:.cu=.o) # Compiled student object (auto-generated)
-TEST_OBJ        := tester/tester.o       # Pre-compiled test object
-TEST_VERBOSE_FLAG := --verbose            # Tester's actual verbose argument (e.g., --verbose, -v)
-VERBOSE         :=                      # User-provided verbose mode (true/false; default: false)
+OP              ?= vector_add
+VARIANT         ?= naive
 
-# -------------------------------
-# Process User Input (VERBOSE → Tester Flag)
-# -------------------------------
-# Translates `VERBOSE=true` (case-insensitive) to the tester's verbose flag.
-# If VERBOSE is not "true" (or empty), no flag is passed.
-VERBOSE_ARG := $(if $(filter true True TRUE, $(VERBOSE)), $(TEST_VERBOSE_FLAG), )
+VARIANT_SRC     := ops/$(OP)/variants/$(VARIANT).cu
+TEST_SRC        := ops/$(OP)/tests/test_$(OP).cu
+BENCH_SRC       := ops/$(OP)/bench/bench_$(OP).cu
+TEST_BIN        := $(BUILD_DIR)/$(OP)_$(VARIANT)_test
+BENCH_BIN       := $(BUILD_DIR)/$(OP)_$(VARIANT)_bench
 
-# -------------------------------
-# Phony Targets (No Files Generated)
-# -------------------------------
-.PHONY: all build run clean
+.DEFAULT_GOAL := help
 
-# Default target: Build + run tests (non-verbose)
-all: build run
+.PHONY: help list-ops assignment test bench clean
 
-# Build target: Compile student code + link with test logic
-build: $(TARGET)
+help:
+	@echo "Learning-CUDA Lab"
+	@echo ""
+	@echo "Targets:"
+	@echo "  make list-ops"
+	@echo "  make assignment [VERBOSE=true]"
+	@echo "  make test OP=vector_add VARIANT=naive"
+	@echo "  make bench OP=vector_add VARIANT=naive"
+	@echo "  make clean"
 
-# Run target: Execute tests (supports `VERBOSE=true` for verbose output)
-run: $(TARGET)
-	@echo "=== Running tests (output from tester.o) ==="
-	@# Show verbose mode status (friendly for users)
-	@if [ -n "$(VERBOSE_ARG)" ]; then \
-	    echo "=== Verbose mode: Enabled (using '$(TEST_VERBOSE_FLAG)') ==="; \
-	else \
-	    echo "=== Verbose mode: Disabled ==="; \
-	fi
-	./$(TARGET) $(VERBOSE_ARG)
+list-ops:
+	@printf '%s\n' $(OPS)
 
-# Clean target: Delete temporary files (executable + src object)
+assignment:
+	$(MAKE) -C $(ARCHIVE_DIR) VERBOSE=$(VERBOSE)
+
+test:
+	@test -f $(TEST_SRC) || (echo "Missing test source: $(TEST_SRC)" && exit 1)
+	@test -f $(VARIANT_SRC) || (echo "Missing variant source: $(VARIANT_SRC)" && exit 1)
+	@mkdir -p $(BUILD_DIR)
+	$(CUDA) $(NVCCFLAGS) $(TEST_SRC) $(VARIANT_SRC) -o $(TEST_BIN)
+	./$(TEST_BIN)
+
+bench:
+	@test -f $(BENCH_SRC) || (echo "Missing benchmark source: $(BENCH_SRC)" && exit 1)
+	@test -f $(VARIANT_SRC) || (echo "Missing variant source: $(VARIANT_SRC)" && exit 1)
+	@mkdir -p $(BUILD_DIR)
+	$(CUDA) $(NVCCFLAGS) $(BENCH_SRC) $(VARIANT_SRC) -o $(BENCH_BIN)
+	./$(BENCH_BIN)
+
 clean:
-	@echo "=== Cleaning temporary files ==="
-	rm -f $(TARGET) $(STUDENT_OBJ)
+	rm -rf $(BUILD_DIR)
 
-# -------------------------------
-# Dependency Rules (Core Logic)
-# -------------------------------
-# Generate executable: Link kernel code (kernels.o) with test logic (tester.o)
-$(TARGET): $(STUDENT_OBJ) $(TEST_OBJ)
-	@echo "=== Linking executable (student code + test logic) ==="
-	$(CC) $(CFLAGS) -o $@ $^
-
-# Generate src object: Compile kernels.cu (triggers template instantiation)
-$(STUDENT_OBJ): $(STUDENT_SRC)
-	@echo "=== Compiling student code (src/kernels.cu) ==="
-	$(CC) $(CFLAGS) -c $< -o $@
