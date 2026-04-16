@@ -3,13 +3,10 @@
 
 namespace {
 
-__global__ void vector_add_strided_kernel(const float* a,
-                                          const float* b,
-                                          float* out,
-                                          int n) {
-  int idx = blockIdx.x * blockDim.x + threadIdx.x;
-  int stride = blockDim.x * gridDim.x;
-  for (int i = idx; i < n; i += stride) {
+__global__ void vector_add_strided_kernel(const float* a, const float* b, float* out, size_t n) {
+  size_t idx = blockIdx.x * blockDim.x + threadIdx.x;
+  size_t stride = blockDim.x * gridDim.x;
+  for (size_t i = idx; i < n; i += stride) {
     out[i] = a[i] + b[i];
   }
 }
@@ -20,13 +17,9 @@ const char* vector_add_variant_name() {
   return "strided_loop";
 }
 
-void launch_vector_add(const float* d_a,
-                       const float* d_b,
-                       float* d_out,
-                       int n) {
+void launch_vector_add(const float* d_a, const float* d_b, float* d_out, size_t n) {
   const int threads = 256;
   const int blocks = (n + threads - 1) / threads;
   vector_add_strided_kernel<<<blocks, threads>>>(d_a, d_b, d_out, n);
   CUDA_CHECK(cudaGetLastError());
 }
-

@@ -25,6 +25,7 @@ ops/<op_name>/
 
 - `naive`
 - `strided_loop`
+- `vectorized`
 - `shared_mem`
 - `warp`
 - `block`
