@@ -17,5 +17,5 @@
 - `notes/correctness.md` 说明如何验证 reference 的可信度
 - `notes/profiling.md` 说明如何记录 benchmark 和 profiling 结论
 
-当前第一个完整示例是 `vector_add/`。
+当前比较完整的示例是 `vector_add/` 和 `transpose/`。
 其余目录先作为后续学习路线的占位和规划。

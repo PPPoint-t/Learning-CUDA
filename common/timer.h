@@ -3,8 +3,8 @@
 #include "common/cuda_check.h"
 
 struct CudaEventTimer {
-  cudaEvent_t start_event {};
-  cudaEvent_t stop_event {};
+  cudaEvent_t start_event{};
+  cudaEvent_t stop_event{};
 
   CudaEventTimer() {
     CUDA_CHECK(cudaEventCreate(&start_event));

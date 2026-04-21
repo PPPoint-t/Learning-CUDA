@@ -9,10 +9,8 @@ inline uint32_t lcg_next(uint32_t state) {
   return state * 1664525u + 1013904223u;
 }
 
-inline std::vector<float> make_deterministic_floats(size_t n,
-                                                    uint32_t seed = 1u,
-                                                    float scale = 1.0f,
-                                                    float bias = 0.0f) {
+inline std::vector<float> make_deterministic_floats(size_t n, uint32_t seed = 1u,
+                                                    float scale = 1.0f, float bias = 0.0f) {
   std::vector<float> out(n);
   uint32_t state = seed;
   for (size_t i = 0; i < n; ++i) {
@@ -25,9 +23,7 @@ inline std::vector<float> make_deterministic_floats(size_t n,
   return out;
 }
 
-inline std::vector<int> make_deterministic_ints(size_t n,
-                                                uint32_t seed = 1u,
-                                                int low = -100,
+inline std::vector<int> make_deterministic_ints(size_t n, uint32_t seed = 1u, int low = -100,
                                                 int high = 100) {
   if (low > high) {
     std::swap(low, high);
@@ -46,4 +42,3 @@ inline std::vector<int> make_deterministic_ints(size_t n,
 inline std::vector<float> make_constant_floats(size_t n, float value) {
   return std::vector<float>(n, value);
 }
-

@@ -37,6 +37,7 @@ Learning-CUDA/
 |  |- scan/
 |  |- silu/
 |  |- softmax/
+|  |- transpose/
 |  |- topk/
 |  `- vector_add/
 |- LICENSE
@@ -108,6 +109,7 @@ make assignment VERBOSE=true
 make test OP=vector_add VARIANT=naive
 make test OP=vector_add VARIANT=strided_loop
 make test OP=silu VARIANT=vectorized
+make test OP=transpose VARIANT=bank_conflict_free
 ```
 
 运行示例算子的 benchmark：
@@ -115,6 +117,7 @@ make test OP=silu VARIANT=vectorized
 ```bash
 make bench OP=vector_add VARIANT=naive
 make bench OP=silu VARIANT=vectorized
+make bench OP=transpose VARIANT=bank_conflict_free
 ```
 
 建议配合阅读：

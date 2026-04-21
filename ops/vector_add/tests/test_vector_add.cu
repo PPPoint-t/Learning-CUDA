@@ -44,8 +44,7 @@ bool run_case(int n) {
 }  // namespace
 
 int main() {
-  std::cout << "Testing vector_add variant: " << vector_add_variant_name()
-            << std::endl;
+  std::cout << "Testing vector_add variant: " << vector_add_variant_name() << std::endl;
 
   bool pass = true;
   pass = run_case(1) && pass;
