@@ -135,7 +135,7 @@ make bench OP=transpose VARIANT=bank_conflict_free
 
 3. `transpose (naive -> shared_mem_tiled -> bank_conflict_free)` 引入 2D 视角，理解 Shared Memory 如何拯救糟糕的全局内存非合并访问。
 
-4. `naive_rmsnorm (naive -> vectorized)` 单线程内的串行数学计算落地，为大规模归约做热身。
+4. `rmsnorm (naive -> vectorized)` 单线程内的串行数学计算落地，为大规模归约做热身。
 
 5. `reduction (naive -> shared_mem -> warp -> block)` 跨越鸿沟，掌握线程同步与基础协作。
 
