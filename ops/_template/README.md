@@ -27,7 +27,13 @@ ops/<op_name>/
 - `strided_loop`
 - `vectorized`
 - `shared_mem`
+- `shared_reduce`
 - `warp`
+- `warp_reduce`
 - `block`
 - `tiled`
+- `bank_conflict_free`
 - `online`
+- `double_buffered`
+- `fused`
+- `tensor_core`

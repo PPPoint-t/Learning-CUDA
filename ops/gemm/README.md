@@ -8,10 +8,13 @@
 - `tiled`
 - `vectorized`
 - `double_buffered`
+- `tensor_core`
 
 核心学习点：
 
 - coalesced load
 - shared memory tiling
+- register tiling
 - 算术强度
+- pipeline / async copy
 - occupancy 和寄存器压力之间的平衡

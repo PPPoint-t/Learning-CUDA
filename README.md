@@ -34,6 +34,7 @@ Learning-CUDA/
 |  |- attention/
 |  |- gemm/
 |  |- reduction/
+|  |- rmsnorm/
 |  |- scan/
 |  |- silu/
 |  |- softmax/
@@ -107,17 +108,19 @@ make assignment VERBOSE=true
 
 ```bash
 make test OP=vector_add VARIANT=naive
-make test OP=vector_add VARIANT=strided_loop
+make test OP=vector_add VARIANT=vectorized
 make test OP=silu VARIANT=vectorized
-make test OP=transpose VARIANT=bank_conflict_free
+make test OP=transpose VARIANT=vectorized_shared_free
+make test OP=rmsnorm VARIANT=warp_reduce
 ```
 
 运行示例算子的 benchmark：
 
 ```bash
-make bench OP=vector_add VARIANT=naive
+make bench OP=vector_add VARIANT=vectorized
 make bench OP=silu VARIANT=vectorized
-make bench OP=transpose VARIANT=bank_conflict_free
+make bench OP=transpose VARIANT=vectorized_shared_free
+make bench OP=rmsnorm VARIANT=warp_reduce
 ```
 
 建议配合阅读：
@@ -125,28 +128,41 @@ make bench OP=transpose VARIANT=bank_conflict_free
 - `notes/correctness.md`
 - `notes/profiling.md`
 
+## 当前已落地的多版本算子
+
+- `vector_add`
+  `naive`、`strided_loop`、`vectorized`
+- `silu`
+  `naive`、`strided_loop`、`vectorized`
+- `transpose`
+  `naive`、`strided_loop`、`shared_mem_tiled`、`bank_conflict_free`、`vectorized_shared_free`
+- `rmsnorm`
+  `naive`、`shared_reduce`、`warp_reduce`
+
+其余算子当前主要以 README 规划和学习路线为主，后续再逐步补实现、测试和 benchmark。
+
 ## 学习顺序
 
 建议按下面的顺序推进：
 
-1. `vector_add (naive -> strided_loop -> vectorized)` 感受纯粹的并行，打满内存带宽。
+1. `vector_add (naive -> strided_loop -> vectorized)` 感受纯粹的一维并行和内存带宽上限；后续可补 `aligned_vectorized`、`half2` 和简单的 element-wise fuse。
 
-2. `silu (naive -> strided_loop -> vectorized)` 掌握 CUDA 数学指令，典型的 Element-wise 访存密集型。
+2. `silu (naive -> strided_loop -> vectorized)` 在 element-wise 框架里引入 `expf` 这类数学指令；后续可补 `fast_math`、`half2`、`bias + silu` 融合。
 
-3. `transpose (naive -> shared_mem_tiled -> bank_conflict_free)` 引入 2D 视角，理解 Shared Memory 如何拯救糟糕的全局内存非合并访问。
+3. `transpose (naive -> strided_loop -> shared_mem_tiled -> bank_conflict_free -> vectorized_shared_free)` 引入 2D 视角，先修 global memory coalescing，再修 shared memory bank conflict；后续可补 thread coarsening、更大 tile 和 `cp.async`。
 
-4. `rmsnorm (naive -> vectorized)` 单线程内的串行数学计算落地，为大规模归约做热身。
+4. `rmsnorm (naive -> shared_reduce -> warp_reduce)` 把 row-wise reduction 真正落地；后续可补 `vectorized`、mixed precision 和 `fused residual + bias + rmsnorm`。
 
-5. `reduction (naive -> shared_mem -> warp -> block)` 跨越鸿沟，掌握线程同步与基础协作。
+5. `reduction (naive -> shared_mem -> warp -> two_stage)` 跨越鸿沟，掌握 block 内树状规约、warp shuffle 和多阶段全局归约。
 
-6. `scan (naive -> shared_mem -> block)`  解决跨线程的数据依赖积累问题。
+6. `scan (hillis_steele -> blelloch -> block_scan -> multi_block)` 解决跨线程的数据依赖积累问题，学会并行树结构和 block / grid 级拼接。
 
-7. `softmax (naive -> online) 将 reduction` 与数学公式结合，理解 Online 算法如何消除一趟多余的内存读取。
+7. `softmax (naive -> shared_mem -> warp -> online)` 将 reduction 与数学公式结合，理解 `max-subtract` 稳定写法和 online 算法如何消除一趟多余的内存读取。
 
-8. `topk (naive -> warp -> block)`  掌握并发数据筛选与局部排序。
+8. `topk (naive_sort_like -> block_select -> quickselect -> heap_based)` 掌握并发数据筛选、局部排序和“部分有序”与“完全排序”的区别。
 
-9. `gemm (naive -> tiled -> vectorized -> tensor_core)` 真正的计算密集型巅峰，将计算管线与内存管线重叠 (Pipeline)。
+9. `gemm (naive -> tiled -> vectorized -> double_buffered -> tensor_core)` 真正进入计算密集型核心课题，理解 tiling、register blocking、pipeline 和 Tensor Core。
 
-10. `attention (FlashAttention basic)` 集大成者，融合 Softmax、GEMM 和寄存器级的数据复用。
+10. `attention (score -> stable_softmax -> mask -> value_accumulate -> tiled_online_softmax -> flashattention_basic)` 集大成者，融合 softmax、GEMM、tiling、masking 和 memory-efficient 设计。
 
 `attention` 被故意放在最后，因为它是一个综合性课题，会同时考验内存访问、tiling、reduction、数值稳定性和整体性能理解。

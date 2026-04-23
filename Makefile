@@ -2,7 +2,7 @@ CUDA            := nvcc
 NVCCFLAGS       := -std=c++17 -O2 -I.
 BUILD_DIR       := build
 ARCHIVE_DIR     := archive/summer2025-assignment
-OPS             := vector_add silu transpose reduction scan softmax topk gemm attention
+OPS             := vector_add silu transpose rmsnorm reduction scan softmax topk gemm attention
 
 OP              ?= vector_add
 VARIANT         ?= naive

@@ -23,11 +23,24 @@
 - shared memory 中 `tile[T][T + 1]` 这一个 padding 为什么能带来真实收益。
 - 向量化不只是把 `float` 改成 `float4`，还必须处理对齐和尾部边界。
 
+## 后续可补全的优化
+
+- `thread_coarsening`
+  让一个线程负责 tile 中多个元素，摊薄索引计算和同步开销。
+- `larger_tiles`
+  针对具体 GPU 调整 tile 大小，在 shared memory 占用和吞吐之间找平衡。
+- `async_tiled`
+  在较新的架构上尝试 `cp.async` 或双缓冲 tile，重叠 global -> shared 搬运和计算。
+- `diagonal_reordering`
+  对很大的方阵，探索 diagonal block reordering 之类的调度方式，减少访存热点。
+
 ## 常用命令
 
 ```bash
 make test OP=transpose VARIANT=naive
 make test OP=transpose VARIANT=bank_conflict_free
+make test OP=transpose VARIANT=vectorized_shared_free
 make bench OP=transpose VARIANT=shared_mem_tiled
 make bench OP=transpose VARIANT=bank_conflict_free
+make bench OP=transpose VARIANT=vectorized_shared_free
 ```
