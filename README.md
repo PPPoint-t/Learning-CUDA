@@ -41,6 +41,16 @@ Learning-CUDA/
 |  |- transpose/
 |  |- topk/
 |  `- vector_add/
+|- triton_lab/
+|  |- upstream/
+|  |  `- Triton-Puzzles/
+|  |- notes/
+|  |- common/
+|  |- ops/
+|  |- tests/
+|  |- bench/
+|  |- README.md
+|  `- requirements.txt
 |- LICENSE
 `- Makefile
 ```
@@ -127,6 +137,7 @@ make bench OP=rmsnorm VARIANT=warp_reduce
 
 - `notes/correctness.md`
 - `notes/profiling.md`
+- `triton_lab/README.md`
 
 ## 当前已落地的多版本算子
 
@@ -140,6 +151,64 @@ make bench OP=rmsnorm VARIANT=warp_reduce
   `naive`、`shared_reduce`、`warp_reduce`
 
 其余算子当前主要以 README 规划和学习路线为主，后续再逐步补实现、测试和 benchmark。
+
+## Triton 学习支线
+
+仓库现在额外维护一条独立的 `triton_lab/` 支线，用来完成两件事：
+
+- 先系统学习 Triton 语法、索引方式和 tile 思维。
+- 等学习稳定后，再为本仓库中的算子补 Triton 实现，并把它作为和 CPU reference 并列的验证后端。
+
+当前第一阶段只做骨架和学习材料引入：
+
+- vendoring 一份 `Triton-Puzzles` 快照到 `triton_lab/upstream/Triton-Puzzles/`
+- 为后续的 Triton `ops / tests / bench / notes` 预留目录
+- 不接入当前的 `make test` / `make bench`
+- 不改变现有 CUDA 主线的目录和工作流
+
+设计原则是：
+
+- CPU reference 仍然保留为最基础的语义基准
+- Triton 实现以后作为 GPU 侧的并列验证后端
+- 等 Triton 学习阶段完成后，再单独引入 CUDA vs Triton vs CPU 的比较脚手架
+
+### Triton Lab 环境
+
+第一阶段建议给 `triton_lab/` 单独准备一个 Python 环境，而不是和当前 `nvcc + .cu` 的 CUDA 主线混在一起。
+
+推荐步骤：
+
+```bash
+cd /home/swy/infini/Learning-CUDA
+python -m pip install --upgrade pip
+python -m pip install -r triton_lab/requirements.txt
+```
+
+如果你后续想在本地打开 puzzle notebook，可以继续安装：
+
+```bash
+python -m pip install jupyter
+```
+
+如果你想试 `triton-viz`，它是可选依赖，建议等基础 puzzle 跑通之后再装：
+
+```bash
+python -m pip install git+https://github.com/Deep-Learning-Profiling-Tools/triton-viz
+```
+
+启动 notebook 的最小命令：
+
+```bash
+cd /home/swy/infini/Learning-CUDA
+source .venv-triton/bin/activate
+jupyter notebook triton_lab/upstream/Triton-Puzzles/Triton-Puzzles.ipynb
+```
+
+这里有几个约定要记住：
+
+- `triton_lab/requirements.txt` 目前只提供第一阶段的最小依赖集合，后续你可以按本机 CUDA / PyTorch / Triton 版本再细化。
+- 第一阶段只要求你能顺利学习 `Triton-Puzzles`，不要求 Triton 参与当前 `make test` / `make bench`。
+- 等你完成 `Triton-Puzzles` 之后，再开始在 `triton_lab/ops/` 中写 Triton kernel，并逐步补 `tests/` 和 `bench/`。
 
 ## 学习顺序
 

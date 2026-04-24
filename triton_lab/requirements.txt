@@ -1,0 +1,9 @@
+# Minimal first-pass dependencies for working through Triton-Puzzles locally.
+# Adjust versions later to match your CUDA, PyTorch, and Triton environment.
+torch
+triton
+jaxtyping
+notebook
+
+# Optional for local puzzle visualization:
+# git+https://github.com/Deep-Learning-Profiling-Tools/triton-viz
